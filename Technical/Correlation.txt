@@ -1,0 +1,38 @@
+function [Backup_left, Backup_right]=Correlation_base_approach(I1, I2, windowSize, dispMin, dispMax)
+
+%[dispMap, timeTaken]=funcSSDR2L(I_left, I_right, W_size, disp_min, disp_max);
+
+[nrLeft,ncLeft] = size(I1);
+[nrRight,ncRight] = size(I2);
+dispMap=zeros(nrLeft, ncLeft);
+
+% Find out how many rows and columns are to the left/right/up/down of the
+% central pixel based on the window size
+win=(windowSize-1)/2;
+
+for(i=1+win:1:nrLeft-win)
+    for(j=1+win:1:ncLeft-win-dispMax)
+        prevSSD = 65532;
+        temp=0.0;
+        bestMatchSoFar = dispMin;
+        for(dispRange=dispMin:1:dispMax)
+            ssd=0.0;
+            for(a=-win:1:win)
+                for(b=-win:1:win)
+                    if (j+b+dispRange <= ncLeft)
+                        temp=I2(i+a,j+b)-I1(i+a,j+b+dispRange);
+                        temp=temp*temp;
+                        ssd=ssd+temp;
+                    end
+                end
+            end
+            if (prevSSD > ssd)
+                prevSSD = ssd;
+                bestMatchSoFar = dispRange;
+            end
+        end
+        dispMap(i,j) = bestMatchSoFar;
+    end
+end
+
+imshow(dispMap);
